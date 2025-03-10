@@ -37,15 +37,32 @@ pip install -r requirements.txt
 
 # Maak .env bestand
 echo "Configureer de API-sleutel..."
-read -p "Voer je Together.ai API-sleutel in (laat leeg om over te slaan): " api_key
+echo "Kies een provider:"
+echo "1) OpenRouter (aanbevolen)"
+echo "2) Together.ai"
+read -p "Keuze [1/2]: " provider_choice
 
-if [ -n "$api_key" ]; then
-    echo "TOGETHER_API_KEY=$api_key" > backend/.env
-    echo "PORT=5000" >> backend/.env
-    echo "API-sleutel geconfigureerd."
+if [ "$provider_choice" == "2" ]; then
+    read -p "Voer je Together.ai API-sleutel in: " api_key
+    if [ -n "$api_key" ]; then
+        echo "TOGETHER_API_KEY=$api_key" > backend/.env
+        echo "DEFAULT_PROVIDER=together" >> backend/.env
+        echo "PORT=5000" >> backend/.env
+        echo "Together.ai API-sleutel geconfigureerd."
+    else
+        echo "API-sleutel configuratie overgeslagen. Je moet handmatig backend/.env aanmaken."
+    fi
 else
-    echo "API-sleutel configuratie overgeslagen. Je moet handmatig backend/.env aanmaken."
-    echo "Kopieer backend/.env.example naar backend/.env en bewerk het bestand."
+    # Standaard naar OpenRouter
+    read -p "Voer je OpenRouter API-sleutel in: " api_key
+    if [ -n "$api_key" ]; then
+        echo "OPENROUTER_API_KEY=$api_key" > backend/.env
+        echo "DEFAULT_PROVIDER=openrouter" >> backend/.env
+        echo "PORT=5000" >> backend/.env
+        echo "OpenRouter API-sleutel geconfigureerd."
+    else
+        echo "API-sleutel configuratie overgeslagen. Je moet handmatig backend/.env aanmaken."
+    fi
 fi
 
 echo ""
