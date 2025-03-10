@@ -8,6 +8,7 @@ const chatMessages = document.getElementById('chat-messages');
 const userInput = document.getElementById('user-input');
 const sendButton = document.getElementById('send-button');
 const modelSelect = document.getElementById('model-select');
+const providerSelect = document.getElementById('provider-select');
 
 // Geschiedenis van berichten voor de API 
 let messageHistory = [
@@ -21,6 +22,9 @@ let messageHistory = [
     }
 ];
 
+// Huidige provider
+let currentProvider = 'openrouter';
+
 // Event listeners
 document.addEventListener('DOMContentLoaded', initialize);
 sendButton.addEventListener('click', handleSendMessage);
@@ -31,16 +35,56 @@ userInput.addEventListener('keydown', (e) => {
     }
 });
 
+// Wanneer de provider verandert, laad de beschikbare modellen
+if (providerSelect) {
+    providerSelect.addEventListener('change', (e) => {
+        currentProvider = e.target.value;
+        loadModels(currentProvider);
+    });
+}
+
 // Initialisatie
 async function initialize() {
-    await loadModels();
+    await loadProviders();
+    await loadModels(currentProvider);
     userInput.focus();
 }
 
-// Laad beschikbare modellen van de API
-async function loadModels() {
+// Laad beschikbare providers van de API
+async function loadProviders() {
     try {
-        const response = await fetch(`${API_BASE_URL}/models`);
+        if (!providerSelect) return; // Skip als er geen provider select element is
+        
+        const response = await fetch(`${API_BASE_URL}/providers`);
+        const providers = await response.json();
+        
+        providerSelect.innerHTML = '';
+        providers.forEach(provider => {
+            if (provider.available) {
+                const option = document.createElement('option');
+                option.value = provider.id;
+                option.textContent = provider.name;
+                providerSelect.appendChild(option);
+                
+                // Sla de eerste beschikbare provider op als huidige
+                if (!currentProvider && provider.available) {
+                    currentProvider = provider.id;
+                }
+            }
+        });
+    } catch (error) {
+        console.error('Fout bij het laden van providers:', error);
+        // Fallback optie als de server niet bereikbaar is
+        if (providerSelect) {
+            providerSelect.innerHTML = '<option value="openrouter">OpenRouter</option>';
+        }
+    }
+}
+
+// Laad beschikbare modellen van de API
+async function loadModels(provider = 'openrouter') {
+    try {
+        const response = await fetch(`${API_BASE_URL}/models?provider=${provider}`);
         const models = await response.json();
         
         modelSelect.innerHTML = '';
@@ -53,7 +97,11 @@ async function loadModels() {
     } catch (error) {
         console.error('Fout bij het laden van modellen:', error);
         // Fallback optie als de server niet bereikbaar is
-        modelSelect.innerHTML = '<option value="mistralai/Mixtral-8x7B-Instruct-v0.1">Mixtral 8x7B (gratis)</option>';
+        if (provider === 'openrouter') {
+            modelSelect.innerHTML = '<option value="openai/gpt-3.5-turbo">GPT-3.5 Turbo (gratis)</option>';
+        } else {
+            modelSelect.innerHTML = '<option value="mistralai/Mixtral-8x7B-Instruct-v0.1">Mixtral 8x7B (gratis)</option>';
+        }
     }
 }
 
@@ -67,7 +115,8 @@ async function sendMessage(message) {
             },
             body: JSON.stringify({
                 messages: messageHistory,
-                model: modelSelect.value
+                model: modelSelect.value,
+                provider: currentProvider
             })
         });
         
