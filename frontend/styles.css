@@ -23,31 +23,44 @@ body {
 header {
     padding: 1rem 0;
     display: flex;
-    justify-content: space-between;
-    align-items: center;
+    flex-direction: column;
     margin-bottom: 1rem;
 }
 
 h1 {
     color: #2c3e50;
     font-size: 1.8rem;
+    margin-bottom: 0.8rem;
+    text-align: center;
 }
 
+.selector-container {
+    display: flex;
+    justify-content: center;
+    gap: 1rem;
+    flex-wrap: wrap;
+}
+
+.provider-selector,
 .model-selector {
     display: flex;
     align-items: center;
+    margin-bottom: 0.5rem;
 }
 
+.provider-selector label,
 .model-selector label {
     margin-right: 0.5rem;
     font-weight: 500;
 }
 
+#provider-select,
 #model-select {
     padding: 0.5rem;
     border: 1px solid #ddd;
     border-radius: 4px;
     background-color: white;
+    min-width: 180px;
 }
 
 #chat-container {
@@ -181,13 +194,9 @@ footer a {
         padding: 0.5rem;
     }
     
-    header {
+    .selector-container {
         flex-direction: column;
-        align-items: flex-start;
-    }
-    
-    .model-selector {
-        margin-top: 0.5rem;
+        align-items: center;
     }
     
     .message {
